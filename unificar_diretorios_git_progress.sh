@@ -37,6 +37,12 @@ blue_text() {
   echo -e "\e[34m$text\e[0m"
 }
 
+# Função para exibir mensagens em vermelho
+red_text() {
+  local text="$1"
+  echo -e "\e[31m$text\e[0m"
+}
+
 echo "======================================================================================================="
 echo "∥                               Atualização de código entre repositórios GIT                          ∥"
 echo "∥                                                                                                     ∥"
@@ -70,10 +76,9 @@ if [ "$START" = "i" ]; then
   # Solicita as entradas do usuário
   REPO_1_URL=$(read_input "Digite a URL do repositório 1: ")
   REPO_2_URL=$(read_input "Digite a URL do repositório 2: ")
-  REPO_1_BRANCH="main"  # Branch main do repositório 1
-  REPO_2_BRANCH=$(read_input "Digite o nome da branch do repositório 2: ")
 
   # Diretórios dos repositórios
+  PATH_PROJECT="${PWD}/migration-repo-git"
   REPO_1_DIR="repo_1"
   REPO_2_DIR="repo_2"
 else
@@ -111,6 +116,17 @@ else
   fi
 fi
 
+# Listagem das branches existentes no repositório 1
+blue_text "1-1/12: Listando branches existentes no repositório 1..."
+git branch -r
+if [ $? -ne 0 ]; then
+  echo "Falha ao listar branches do repositório 1. Abortando o processo."
+  cd ..
+  rm -rf $REPO_1_DIR
+  rm -rf $REPO_2_DIR
+  exit 1
+fi
+
 # Verifica se o diretório do repositório 2 existe
 if [ -d "$REPO_2_DIR" ]; then
   ACTION=$(read_input "O diretório do repositório 2 já existe. Deseja [a]tualizar, [r]emover e clonar novamente, ou [p]rosseguir conforme está? (a/r/p): ")
@@ -143,28 +159,8 @@ else
   fi
 fi
 
-# Navegação para o diretório do repositório 2
-yellow_text "3/12: Navegando até o diretório do repositório 2..."
-cd $REPO_2_DIR
-if [ $? -ne 0 ]; then
-  echo "Falha ao navegar para o diretório do repositório 2. Abortando o processo."
-  rm -rf ../$REPO_1_DIR
-  rm -rf ../$REPO_2_DIR
-  exit 1
-fi
-
 # Listagem das branches existentes nos repositórios
-blue_text "4/12: Listando branches existentes no repositório 1..."
-git branch -r
-if [ $? -ne 0 ]; then
-  echo "Falha ao listar branches do repositório 1. Abortando o processo."
-  cd ..
-  rm -rf $REPO_1_DIR
-  rm -rf $REPO_2_DIR
-  exit 1
-fi
-
-blue_text "Listando branches existentes no repositório 2..."
+blue_text "2-1/12: Listando branches existentes no repositório 2..."
 git branch -r
 if [ $? -ne 0 ]; then
   echo "Falha ao listar branches do repositório 2. Abortando o processo."
@@ -174,9 +170,40 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Entrada de branch pelo usuário
+yellow_text "3/12: Definindo as branchs de unificação entre os projetos..."
+REPO_1_BRANCH=$(read_input "Digite o nome da branch do repositório 1: ")
+REPO_2_BRANCH=$(read_input "Digite o nome da branch do repositório 2: ")
+
+# # Listagem das branches existentes nos repositórios
+# blue_text "4/12: Listando branches existentes no repositório 1..."
+# cd $REPO_1_DIR
+# git branch -r
+# if [ $? -ne 0 ]; then
+#   echo "Falha ao listar branches do repositório 1. Abortando o processo."
+#   cd ..
+#   rm -rf $REPO_1_DIR
+#   rm -rf $REPO_2_DIR
+#   exit 1
+# fi
+
+# blue_text "Listando branches existentes no repositório 2..."
+# cd $REPO_2_DIR
+# git branch -r
+# if [ $? -ne 0 ]; then
+#   echo "Falha ao listar branches do repositório 2. Abortando o processo."
+#   cd ..
+#   rm -rf $REPO_1_DIR
+#   rm -rf $REPO_2_DIR
+#   exit 1
+# fi
+
 # Verificação das branches informadas pelo usuário
 yellow_text "5/12: Verificando se as branches informadas existem nos repositórios..."
+cd $REPO_1_DIR
 BRANCH_EXISTS_1=$(git branch -r | grep "origin/$REPO_1_BRANCH")
+cd ..
+cd $REPO_2_DIR
 BRANCH_EXISTS_2=$(git branch -r | grep "origin/$REPO_2_BRANCH")
 
 if [ -z "$BRANCH_EXISTS_1" ]; then
@@ -190,7 +217,7 @@ else
 fi
 
 if [ -z "$BRANCH_EXISTS_2" ]; then
-  yellow_text "A branch $REPO_2_BRANCH não existe no repositório 2. Será sugerido criar a branch 'main'."
+  echo "A branch $REPO_2_BRANCH não existe no repositório 2. Será sugerido criar a branch 'main'."
   REPO_2_BRANCH="main"
   git checkout -b $REPO_2_BRANCH
   green_text "Branch 'main' criada no repositório 2."
