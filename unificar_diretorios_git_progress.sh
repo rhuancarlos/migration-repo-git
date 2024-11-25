@@ -31,6 +31,12 @@ green_text() {
   echo -e "\e[32m$text\e[0m"
 }
 
+# Função para exibir mensagens em azul
+blue_text() {
+  local text="$1"
+  echo -e "\e[34m$text\e[0m"
+}
+
 echo "======================================================================================================="
 echo "∥                               Atualização de código entre repositórios GIT                          ∥"
 echo "∥                                                                                                     ∥"
@@ -40,14 +46,16 @@ echo "∥                                                                       
 echo "∥ > PROCESSO REALIZADO POR ESTE SCRIPT                                                                ∥"
 echo "∥  1. Clonamos os repositórios 1 e 2.                                                                 ∥"
 echo "∥  2. Navegamos até o diretório do repositório 2.                                                     ∥"
-echo "∥  3. Adicionamos o repositório 1 como remoto.                                                        ∥"
-echo "∥  4. Buscamos as mudanças do repositório 1.                                                          ∥"
-echo "∥  5. Criamos uma nova branch temporária no repositório 2 baseada na branch especificada.             ∥"
-echo "∥  6. Mesclamos as mudanças da branch 'main' do repositório 1 na branch temporária do repositório 2.  ∥"
-echo "∥  7. Perguntamos ao usuário se deseja enviar as mudanças para o repositório remoto.                  ∥"
-echo "∥  8. Enviamos a branch temporária para o repositório remoto.                                         ∥"
-echo "∥  9. Limpamos o diretório temporário do repositório 1.                                               ∥"
-echo "∥  10. Perguntamos ao usuário se deseja deletar o diretório do repositório 2.                         ∥"
+echo "∥  3. Listamos as branches existentes nos repositórios.                                               ∥"
+echo "∥  4. Verificamos se as branches informadas pelo usuário existem nos repositórios.                    ∥"
+echo "∥  5. Adicionamos o repositório 1 como remoto.                                                        ∥"
+echo "∥  6. Buscamos as mudanças do repositório 1.                                                          ∥"
+echo "∥  7. Criamos uma nova branch temporária no repositório 2 baseada na branch especificada.             ∥"
+echo "∥  8. Mesclamos as mudanças da branch 'main' do repositório 1 na branch temporária do repositório 2.  ∥"
+echo "∥  9. Perguntamos ao usuário se deseja enviar as mudanças para o repositório remoto.                  ∥"
+echo "∥  10. Enviamos a branch temporária para o repositório remoto.                                        ∥"
+echo "∥  11. Limpamos o diretório temporário do repositório 1.                                              ∥"
+echo "∥  12. Perguntamos ao usuário se deseja deletar o diretório do repositório 2.                         ∥"
 echo "∥                                                                                                     ∥"
 echo "∥ Author: Rhuan Carlos                                                                                ∥"
 echo "∥ E-mail: rhuancarloscodev@gmail.com                                                                  ∥"
@@ -78,7 +86,7 @@ if [ -d "$REPO_1_DIR" ]; then
   ACTION=$(read_input "O diretório do repositório 1 já existe. Deseja [a]tualizar, [r]emover e clonar novamente, ou [p]rosseguir conforme está? (a/r/p): ")
   if [ "$ACTION" = "r" ]; then
     rm -rf $REPO_1_DIR
-    yellow_text "1/10: Clonando o repositório 1 (o mais atualizado)..."
+    yellow_text "1/12: Clonando o repositório 1 (o mais atualizado)..."
     git clone $REPO_1_URL $REPO_1_DIR
     if [ $? -ne 0 ]; then
       echo "Falha ao clonar o repositório 1. Abortando o processo."
@@ -93,7 +101,7 @@ if [ -d "$REPO_1_DIR" ]; then
     cd ..
   fi
 else
-  yellow_text "1/10: Clonando o repositório 1 (o mais atualizado)..."
+  yellow_text "1/12: Clonando o repositório 1 (o mais atualizado)..."
   git clone $REPO_1_URL $REPO_1_DIR
   if [ $? -ne 0 ]; then
     echo "Falha ao clonar o repositório 1. Abortando o processo."
@@ -108,7 +116,7 @@ if [ -d "$REPO_2_DIR" ]; then
   ACTION=$(read_input "O diretório do repositório 2 já existe. Deseja [a]tualizar, [r]emover e clonar novamente, ou [p]rosseguir conforme está? (a/r/p): ")
   if [ "$ACTION" = "r" ]; then
     rm -rf $REPO_2_DIR
-    yellow_text "2/10: Clonando o repositório 2..."
+    yellow_text "2/12: Clonando o repositório 2..."
     git clone $REPO_2_URL $REPO_2_DIR
     if [ $? -ne 0 ]; then
       echo "Falha ao clonar o repositório 2. Abortando o processo."
@@ -124,7 +132,7 @@ if [ -d "$REPO_2_DIR" ]; then
     cd ..
   fi
 else
-  yellow_text "2/10: Clonando o repositório 2..."
+  yellow_text "2/12: Clonando o repositório 2..."
   git clone $REPO_2_URL $REPO_2_DIR
   if [ $? -ne 0 ]; then
     echo "Falha ao clonar o repositório 2. Abortando o processo."
@@ -136,7 +144,7 @@ else
 fi
 
 # Navegação para o diretório do repositório 2
-yellow_text "3/10: Navegando até o diretório do repositório 2..."
+yellow_text "3/12: Navegando até o diretório do repositório 2..."
 cd $REPO_2_DIR
 if [ $? -ne 0 ]; then
   echo "Falha ao navegar para o diretório do repositório 2. Abortando o processo."
@@ -145,8 +153,53 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Listagem das branches existentes nos repositórios
+blue_text "4/12: Listando branches existentes no repositório 1..."
+git branch -r
+if [ $? -ne 0 ]; then
+  echo "Falha ao listar branches do repositório 1. Abortando o processo."
+  cd ..
+  rm -rf $REPO_1_DIR
+  rm -rf $REPO_2_DIR
+  exit 1
+fi
+
+blue_text "Listando branches existentes no repositório 2..."
+git branch -r
+if [ $? -ne 0 ]; then
+  echo "Falha ao listar branches do repositório 2. Abortando o processo."
+  cd ..
+  rm -rf $REPO_1_DIR
+  rm -rf $REPO_2_DIR
+  exit 1
+fi
+
+# Verificação das branches informadas pelo usuário
+yellow_text "5/12: Verificando se as branches informadas existem nos repositórios..."
+BRANCH_EXISTS_1=$(git branch -r | grep "origin/$REPO_1_BRANCH")
+BRANCH_EXISTS_2=$(git branch -r | grep "origin/$REPO_2_BRANCH")
+
+if [ -z "$BRANCH_EXISTS_1" ]; then
+  echo "A branch $REPO_1_BRANCH não existe no repositório 1. Abortando o processo."
+  cd ..
+  rm -rf $REPO_1_DIR
+  rm -rf $REPO_2_DIR
+  exit 1
+else
+  green_text "A branch $REPO_1_BRANCH existe no repositório 1."
+fi
+
+if [ -z "$BRANCH_EXISTS_2" ]; then
+  yellow_text "A branch $REPO_2_BRANCH não existe no repositório 2. Será sugerido criar a branch 'main'."
+  REPO_2_BRANCH="main"
+  git checkout -b $REPO_2_BRANCH
+  green_text "Branch 'main' criada no repositório 2."
+else
+  green_text "A branch $REPO_2_BRANCH existe no repositório 2."
+fi
+
 # Adiciona o repositório 1 como remoto
-yellow_text "4/10: Adicionando o repositório 1 como remoto..."
+yellow_text "6/12: Adicionando o repositório 1 como remoto..."
 git remote add repo1 ../$REPO_1_DIR
 if [ $? -ne 0 ]; then
   echo "Falha ao adicionar o repositório 1 como remoto. Abortando o processo."
@@ -157,7 +210,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Busca as mudanças do repositório 1
-yellow_text "5/10: Buscando mudanças do repositório 1..."
+yellow_text "7/12: Buscando mudanças do repositório 1..."
 git fetch repo1
 if [ $? -ne 0 ]; then
   echo "Falha ao buscar mudanças do repositório 1. Abortando o processo."
@@ -168,7 +221,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Cria uma nova branch temporária no repositório 2
-yellow_text "6/10: Criando uma nova branch temporária no repositório 2..."
+yellow_text "8/12: Criando uma nova branch temporária no repositório 2..."
 git checkout -b temp_$REPO_2_BRANCH origin/$REPO_2_BRANCH
 if [ $? -ne 0 ]; then
   echo "Falha ao criar a branch temporária no repositório 2. Abortando o processo."
@@ -179,7 +232,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Mescla as mudanças da branch main do repositório 1 na branch temporária do repositório 2
-yellow_text "7/10: Mesclando mudanças da branch main do repositório 1 na branch temporária do repositório 2..."
+yellow_text "9/12: Mesclando mudanças da branch main do repositório 1 na branch temporária do repositório 2..."
 git merge repo1/$REPO_1_BRANCH
 MERGE_EXIT_CODE=$?
 
@@ -200,10 +253,10 @@ else
 fi
 
 # Pergunta se o usuário deseja enviar as mudanças para o repositório remoto
-yellow_text "8/10: Envio das alterações para o repositório remoto..."
+yellow_text "10/12: Envio das alterações para o repositório remoto..."
 SEND_PUSH=$(read_input "Deseja enviar as mudanças para o repositório remoto? (s/n): ")
 if [ "$SEND_PUSH" = "s" ]; then
-  yellow_text "9/10: Enviando mudanças para o repositório remoto..."
+  yellow_text "11/12: Enviando mudanças para o repositório remoto..."
   git push origin temp_$REPO_2_BRANCH:$REPO_2_BRANCH
   if [ $? -ne 0 ]; then
     echo "Falha ao enviar para o repositório remoto."
@@ -212,7 +265,7 @@ if [ "$SEND_PUSH" = "s" ]; then
     green_text "Envio para o repositório remoto concluído com sucesso!"
   fi
 else
-  yellow_text "9/10: Enviando mudanças para o repositório remoto..."
+  yellow_text "11/12: Enviando mudanças para o repositório remoto..."
   echo "Envio para o repositório remoto cancelado pelo usuário."
 fi
 
@@ -220,7 +273,7 @@ fi
 rm -rf ../$REPO_1_DIR
 
 # Pergunta se o usuário deseja deletar o diretório do repositório 2
-yellow_text "10/10: Deletar diretório do repositório 2..."
+yellow_text "12/12: Deletar diretório do repositório 2..."
 DELETE_REPO_2=$(read_input "Deseja deletar o diretório do repositório 2? (s/n): ")
 if [ "$DELETE_REPO_2" = "s" ]; then
   rm -rf ../$REPO_2_DIR
